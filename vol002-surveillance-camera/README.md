@@ -5,7 +5,7 @@
 ### 必須
 
 * [Vol.000でセットアップしたRaspberry Pi](../vol000-raspberrypi-setup/README.md)
-(体験会では既にご用意しております。)
+（体験会では既にご用意しております。）
 * [PiCamera](https://www.amazon.co.jp/dp/B01D1D0DJ0)
 
 
@@ -45,9 +45,7 @@ Windows での作成手順を記載しておりますので、Mac 等をご使�
 
 まずは PiCamera を装着します。
 
-装着方法は、
-[こちら](https://github.com/cami/IoT-Hands-on/blob/feature/vol002/vol001-pyroelectric-sensor/README.md#picamera-%E3%82%92-raspberrypi-%E3%81%AB%E8%A3%85%E7%9D%80%E3%81%99%E3%82%8B)
-をご覧ください。
+装着方法は、[こちら](https://github.com/cami/IoT-Hands-on/blob/feature/vol002/vol001-pyroelectric-sensor/README.md#picamera-%E3%82%92-raspberrypi-%E3%81%AB%E8%A3%85%E7%9D%80%E3%81%99%E3%82%8B)をご覧ください。
 
 次に、PiCamera で撮影している映像をストリーミング再生してみましょう。
 
@@ -100,18 +98,13 @@ Starting broadcast thread
 
 #### openCV のインストール
 
-今回は、
-[openCV 公式ドキュメント](https://docs.opencv.org/3.4.3/d7/d8b/tutorial_py_face_detection.html)
-をもとに実装していきます。
-
-顔検出の詳しい解説は論文等に譲り、割愛させていただきます。
+今回は、[openCV 公式ドキュメント](https://docs.opencv.org/3.4.3/d7/d8b/tutorial_py_face_detection.html)
+をもとに実装していきます。顔検出の詳しい解説は論文等に譲り、割愛させていただきます。
 (cf. [Face Recognition with OpenCV](https://docs.opencv.org/3.4.3/da/d60/tutorial_face_main.html))
 
 本日は事前に環境構築を済ませてありますが、openCV を Raspberry Pi にインストールする必要があります。
 
-手順は
-[openCV 公式ドキュメント](https://docs.opencv.org/3.4.3/d7/d9f/tutorial_linux_install.html)
-にある通り、
+手順は[openCV 公式ドキュメント](https://docs.opencv.org/3.4.3/d7/d9f/tutorial_linux_install.html)にある通り
 ```
 sudo apt install -y build-essential
 sudo apt install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
@@ -139,7 +132,7 @@ curl --create-dirs -o "./haarcascades/haarcascade_frontalface_default.xml" https
 
 と実行することで、
 
-![haarcascades_download](./docs/haarcascade_download.PNG)
+![haarcascades_download](docs/practice2/haarcascade_download.png)
 
 `vol002-surveillance-camera` 配下に分類器を保存できました。
 
@@ -154,7 +147,7 @@ vi main.py
 
 練習2では CircularIO, UploadGoogleDrive は import しません。
 
-![main_libraries_Exer2](./docs/main_libraries_Exer2.PNG)
+![main_libraries_Exer2](docs/practice2/main_libraries.png)
 
 このようにライブラリを読み込んでいれば、うまく動作するはずです。
 
@@ -252,3 +245,4 @@ python3 main.py --noauth_local_webserver
 ```
 
 指示通りに認証を完了させると、イベント録画が始まります。
+

@@ -1,87 +1,73 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
-# python3 main.py --noauth_local_webserver で実行
-
-from time import sleep
-import RPi.GPIO as GPIO
-import os
-import glob
-
-# 焦電センサを使うならば photo, person_identifier を import する
-from processor.Photo import photo
-from processor.PersonIdentifier import person_identifier
-
-# picamera で完結させるならば、CircularIO, UploadGoogleDrive を import する
-# from processor.CircularIO import CircularIO
-# from processor.UploadGoogleDrive import UploadGoogleDrive
-
-from processor.SlackNotification import SlackNotification
+from PIL import Image
+from datetime import datetime
+from pathlib import Path
+from processor import configparser
+from processor import transcoder
+from processor.camera import Camera
+from processor.detector import PersonDetector
+from processor.slack import Slack
+from processor.trigger import GpioTrigger
+import cv2
+import io
+import numpy as np
+import time
 
 
 def main():
-    slack_notification = SlackNotification()
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(18, GPIO.IN)
-    sleep(2)
-    GPIO.add_event_detect(18, GPIO.RISING)
+    config = configparser.load()
 
-    # photo, person_identifier を import した場合、コメントアウトを外す
-    # CircularIO, UploadGoogleDrive を import した場合、コメントアウト
+    slack = Slack(config['slack_token'], config['slack_channel'])
+
+    trigger = GpioTrigger()
+    trigger.start()
+
+    camera = Camera()
+    camera.start()
+
+    person_detector = PersonDetector(str(Path(__file__).parent / config['opencv_classifier_name']))
+
     try:
         while True:
-            if GPIO.event_detected(18):
-                print('動体を検知しました。分析にかけます。')
+            # if not trigger.detect():
+            #     continue
 
-                photo_name = photo()
-                num_faces, filename = person_identifier(photo_name)
+            print('動体を検知しました。分析にかけます')
 
-                with open(filename, 'rb') as f:
-                    if num_faces >= 1:
-                        photo_comment = '人物を検知！写真を送ります。'
-                    else:
-                        photo_comment = '動体を検知しましたが人物ではありませんでした。'
+            # 画像を解析する
+            stream = camera.take_photo()
+            data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            image = cv2.imdecode(data, cv2.IMREAD_COLOR)
+            faces = person_detector.identifier(image)
 
-                    print(photo_comment)
+            # Slackに送るコメントを作成
+            if len(faces) > 0:
+                comment = '人物を検知！写真を送ります'
+            else:
+                comment = '動体を検知しましたが人物ではありませんでした'
 
-                    slack_notification.upload_file(filename, photo_comment, f)
+            print(comment)
 
-    # photo, person_identifier を import した場合、コメントアウト
-    # CircularIO, UploadGoogleDrive を import した場合、コメントアウトを外す
-    # upload_google_drive = UploadGoogleDrive()
-    # circular_io = CircularIO()
-    #
-    # print('エッジイベント検出中')
-    #
-    # try:
-    #     while True:
-    #         if GPIO.event_detected(18):
-    #             movie_name = circular_io.movie()
-    #
-    #             movie_comment = 'イベント録画を行いました。動画を送信します。'
-    #             slack_notification.send_message(movie_comment)
-    #             sleep(3)
-    #             upload_google_drive.upload_movie(movie_name)
-    #             sleep(5)
+            # Slackに画像をアップロードする
+            person_detector.marking(image, faces)
+            imgBytesIO = io.BytesIO()
+            Image.fromarray(image).save(imgBytesIO, format='PNG')
+            slack.files_upload(comment, imgBytesIO.getvalue(), datetime.now().isoformat())
+
+            # Slackに動画をアップロードする
+            # slack.files_upload(comment, transcoder.transcode(camera.record_video()), datetime.now().isoformat() + '.h264')
+
+            print('Slackへ通知しました')
+
+            time.sleep(1)
 
     except KeyboardInterrupt:
-        print('\nCtrl + C により、動体検知が終了しました。')
+        print('動体検知が終了しました')
 
     finally:
-        for p in glob.glob('*.jpg', recursive=True):
-            if os.path.isfile(p):
-                os.remove(p)
-
-        for p in glob.glob('*.h264', recursive=True):
-            if os.path.isfile(p):
-                os.remove(p)
-
-    print('deleted unnecessary files :)')
-
-    GPIO.remove_event_detect(18)
-
-    # photo, person_identifier を import した場合、コメントアウト
-    # CircularIO, UploadGoogleDrive を import した場合、コメントアウトを外す
-    # circular_io.camera_cleanup()
+        trigger.stop()
+        camera.stop()
 
 
 if __name__ == '__main__':
