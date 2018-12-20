@@ -151,14 +151,14 @@ $ nano config.sample.yml
 **【設定情報】**
 ```
 # Slack
-slack_token: # Slackの # generalチャンネルに貼ってある "xoxp-"で始まる文字列
+slack_token: # Slackの generalチャンネルに貼ってある "xoxp-"で始まる文字列
 slack_channel: 'security-camera'
 
 # OpenCV
 opencv_classifier_name: './haarcascades/haarcascade_frontalface_default.xml'
 ```
 
-`slack_token` はご招待した Slackのワークスペースの `# general` チャンネルに記載してあります。
+`slack_token` はご招待した Slackのワークスペースの `general` チャンネルに記載してあります。
 
 vol001と同じ手順で `config.yml` ファイル名を変更して保存します。
 
@@ -171,7 +171,7 @@ vol001と同じ手順で `config.yml` ファイル名を変更して保存しま
 python3 main.py
 ```
 
-成功すれば、動体を検知すると写真を撮影し、人物判定を行った後に、[Slack]に通知を送信します。
+成功すれば、動体を検知すると写真を撮影し、人物判定を行った後に、Slackに通知を送信します。
 
 
 
